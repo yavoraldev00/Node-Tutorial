@@ -1,5 +1,13 @@
 const express = require("express");
+const mongoose = require("mongoose");
 
+// const dbURI = "mongodb+srv://admin:1234@cluster0.soae1vo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+// mongoose.connect(dbURI, {}).
+//     then((resp) => {
+//         console.log("connected!")
+//     }).catch((err) => {
+//         console.log(err)
+//     })
 // express app
 const app = express();
 
