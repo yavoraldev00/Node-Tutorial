@@ -3,6 +3,9 @@ const express = require("express");
 // express app
 const app = express();
 
+// middleware
+app.use(express.static("public"));
+
 // register view engine
 app.set("view engine", "ejs");
 
