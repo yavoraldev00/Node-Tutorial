@@ -1,50 +1,88 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const Blog = require("./models/blog")
+const express = require('express');
+const mongoose = require('mongoose');
+const Blog = require('./models/blog');
 
-const dbURI = "mongodb+srv://admin:1234@cluster0.soae1vo.mongodb.net/node-tutorial?retryWrites=true&w=majority&appName=Cluster0"
-mongoose.connect(dbURI, {}).
-    then((resp) => {
-        // listen for requests
-        app.listen(3000);
-    }).catch((err) => {
-        console.log(err)
-    });
 // express app
 const app = express();
 
-// middleware
-app.use(express.static("public"));
+// connect to mongodb & listen for requests
+const dbURI = "mongodb+srv://admin:1234@cluster0.soae1vo.mongodb.net/node-tutorial?retryWrites=true&w=majority&appName=Cluster0";
+
+mongoose.connect(dbURI)
+  .then(result => app.listen(3000))
+  .catch(err => console.log(err));
 
 // register view engine
-app.set("view engine", "ejs");
+app.set('view engine', 'ejs');
 
-app.get("/",(req,res) => {
-    res.redirect("/blogs");
-})
+// middleware & static files
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  res.locals.path = req.path;
+  next();
+});
 
-// blogsroutes
+// routes
+app.get('/', (req, res) => {
+  res.redirect('/blogs');
+});
 
-app.get("/add-blogs",(req,res, next) => {
-    const blog = new Blog({
-        title: "new blog 3?",
-        snippet: "Wow... about the blog",
-        body: "Wowwww.... more about the blog"
+app.get('/about', (req, res) => {
+  res.render('about', { title: 'About' });
+});
+
+// blog routes
+app.get('/blogs/create', (req, res) => {
+  res.render('create', { title: 'Create a new blog' });
+});
+
+app.get('/blogs', (req, res) => {
+  Blog.find().sort({ createdAt: -1 })
+    .then(result => {
+      res.render('index', { blogs: result, title: 'All blogs' });
+    })
+    .catch(err => {
+      console.log(err);
     });
+});
 
-    blog.save().then((resp) => {console.log("Succesfully sent!")}).catch((err) => { console.log(err) });
+app.post('/blogs', (req, res) => {
+  const blog = new Blog(req.body);
 
-    next();
-})
+  blog.save()
+    .then(result => {
+      res.redirect('/blogs');
+    })
+    .catch(err => {
+      console.log(err);
+    });
+});
 
-app.get("/about",(req,res) => {
-    res.render("about",{title: "About"})
-})
+app.get('/blogs/:id', (req, res) => {
+  const id = req.params.id;
+  Blog.findById(id)
+    .then(result => {
+      res.render('details', { blog: result, title: 'Blog Details' });
+    })
+    .catch(err => {
+      console.log(err);
+    });
+});
 
-app.get("/blogs/create",(req,res) => {
-    res.render("create", {title: "Create Blog"});
-})
+app.delete('/blogs/:id', (req, res) => {
+  const id = req.params.id;
+  
+  Blog.findByIdAndDelete(id)
+    .then(result => {
+      res.json({ redirect: '/blogs' });
+    })
+    .catch(err => {
+      console.log(err);
+    });
+});
 
-app.use((req,res) => {
-    res.status(404).render("404", {title: "404"})
-})
+// 404 page
+app.use((req, res) => {
+  res.status(404).render('404', { title: '404' });
+});
