@@ -1,13 +1,15 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const Blog = require("./models/blog")
 
-// const dbURI = "mongodb+srv://admin:1234@cluster0.soae1vo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-// mongoose.connect(dbURI, {}).
-//     then((resp) => {
-//         console.log("connected!")
-//     }).catch((err) => {
-//         console.log(err)
-//     })
+const dbURI = "mongodb+srv://admin:1234@cluster0.soae1vo.mongodb.net/node-tutorial?retryWrites=true&w=majority&appName=Cluster0"
+mongoose.connect(dbURI, {}).
+    then((resp) => {
+        // listen for requests
+        app.listen(3000);
+    }).catch((err) => {
+        console.log(err)
+    });
 // express app
 const app = express();
 
@@ -17,15 +19,22 @@ app.use(express.static("public"));
 // register view engine
 app.set("view engine", "ejs");
 
-// listen for requests
-app.listen(3000);
-
 app.get("/",(req,res) => {
-    res.render("index", {title: "Home", blogs: [
-        {title: 'Yoshi finds eggs', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-        {title: 'Mario finds stars', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-        {title: 'How to defeat bowser', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-    ]})
+    res.redirect("/blogs");
+})
+
+// blogsroutes
+
+app.get("/add-blogs",(req,res, next) => {
+    const blog = new Blog({
+        title: "new blog 3?",
+        snippet: "Wow... about the blog",
+        body: "Wowwww.... more about the blog"
+    });
+
+    blog.save().then((resp) => {console.log("Succesfully sent!")}).catch((err) => { console.log(err) });
+
+    next();
 })
 
 app.get("/about",(req,res) => {
